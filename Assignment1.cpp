@@ -13,27 +13,28 @@ int main() {
     std::string command;
 
     while (true) {
-        std::cout << "Choose the command: ";
+        std::cout << "Choose the command (or type 'exit' to quit): ";
         std::cin >> command;
         std::cin.ignore();
 
         if (command == "1") {
-            std::cout << "Enter text:\n";
             text_input();
         }
         else if (command == "2") {
-            std::cout << "New line is started\n";
-            std::cout << "\n";
+            std::cout << "Enter new line text: ";
+            std::string new_line;
+            std::getline(std::cin, new_line);
+            text_lines.push_back(new_line);
         }
         else if (command == "3") {
-            std::cout << "Enter the file name for saving:\n";
+            std::cout << "Enter the file name for saving: ";
             std::string filename;
             std::cin >> filename;
             save_text(filename);
             std::cout << "Text has been saved successfully\n";
         }
         else if (command == "4") {
-            std::cout << "Enter the file name for loading:\n";
+            std::cout << "Enter the file name for loading: ";
             std::string filename;
             std::cin >> filename;
             load_text(filename);
@@ -52,7 +53,7 @@ int main() {
             std::cout << "1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file\n";
         }
         else if (command == "exit") {
-            std::cout << "Exit\n";
+            std::cout << "Exiting the program...\n";
             break;
         }
         else {
@@ -65,11 +66,9 @@ int main() {
 
 int text_input() {
     std::string text;
-
+    std::cout << "Enter text: ";
     std::getline(std::cin, text);
-    if (text != "/0") {
-        text_lines.push_back(text);
-    }
+    text_lines.push_back(text);
 
     std::cout << "You wrote:\n";
     for (const auto& line : text_lines) {
