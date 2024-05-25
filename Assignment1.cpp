@@ -1,16 +1,20 @@
 #include <iostream>
 #include <string>
-#include <cstdio>
+#include <vector>
+#include <fstream>
 
 int text_input();
 int save_text(const std::string& filename);
 int load_text(const std::string& filename);
+
+std::vector<std::string> text_lines;
 
 int main() {
     std::string command;
     std::cout << "Start the new line\n";
     std::cout << "Choose the command: ";
     std::cin >> command;
+    std::cin.ignore();
 
     if (command == "1") {
         std::cout << "Enter text to append:\n";
@@ -55,20 +59,31 @@ int main() {
 
 int text_input() {
     std::string text;
-    std::cout << "Enter the text: ";
-    std::cin.ignore();
-    std::getline(std::cin, text);
-    std::cout << "You entered: " << text << "\n";
+    std::cout << "Enter text ";
+
+    while (true) {
+        std::getline(std::cin, text);
+        if (text == "\0") {
+            break;
+        }
+        text_lines.push_back(text);
+    }
+
+    std::cout << "You wrote:\n";
+    for (const auto& line : text_lines) {
+        std::cout << line << "\n";
+    }
 
     return 0;
 }
 
 int save_text(const std::string& filename) {
-    FILE* file;
-    errno_t err = fopen_s(&file, filename.c_str(), "w"); //fopen_s to fix the issue with visual studio not liking fopen
-    if (err == 0 && file != NULL) {
-        fputs("Hello, files world!", file);
-        fclose(file);
+    std::ofstream file(filename);
+    if (file.is_open()) {
+        for (const auto& line : text_lines) {
+            file << line << "\n";
+        }
+        file.close();
     }
     else {
         std::cout << "Error opening file for saving\n";
@@ -77,17 +92,21 @@ int save_text(const std::string& filename) {
 }
 
 int load_text(const std::string& filename) {
-    FILE* file;
-    char mystring[100];
-    errno_t err = fopen_s(&file, filename.c_str(), "r");
-    if (err != 0 || file == NULL) {
-        std::cout << "Error opening file for loading\n";
+    std::ifstream file(filename);
+    if (file.is_open()) {
+        std::string line;
+        text_lines.clear();
+        while (std::getline(file, line)) {
+            text_lines.push_back(line);
+        }
+        file.close();
+        std::cout << "Loaded text:\n";
+        for (const auto& line : text_lines) {
+            std::cout << line << "\n";
+        }
     }
     else {
-        if (fgets(mystring, 100, file) != NULL) {
-            std::cout << mystring << "\n";
-        }
-        fclose(file);
+        std::cout << "Error opening file for loading\n";
     }
     return 0;
 }
