@@ -11,47 +11,53 @@ std::vector<std::string> text_lines;
 
 int main() {
     std::string command;
-    std::cout << "Start the new line\n";
-    std::cout << "Choose the command: ";
-    std::cin >> command;
-    std::cin.ignore();
 
-    if (command == "1") {
-        std::cout << "Enter text to append:\n";
-        text_input();
-    }
-    else if (command == "2") {
-        std::cout << "New line is started\n";
-        std::cout << "\n";
-    }
-    else if (command == "3") {
-        std::cout << "Enter the file name for saving:\n";
-        std::string filename;
-        std::cin >> filename;
-        save_text(filename);
-        std::cout << "Text has been saved successfully\n";
-    }
-    else if (command == "4") {
-        std::cout << "Enter the file name for loading:\n";
-        std::string filename;
-        std::cin >> filename;
-        load_text(filename);
-        std::cout << "Text has been loaded successfully\n";
-    }
-    else if (command == "5") {
-        // implement functionality for command 5
-    }
-    else if (command == "6") {
-        // implement functionality for command 6
-    }
-    else if (command == "7") {
-        // implement functionality for command 7
-    }
-    else if (command == "help") {
-        std::cout << "1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file\n";
-    }
-    else {
-        std::cout << "Invalid command\n";
+    while (true) {
+        std::cout << "Choose the command: ";
+        std::cin >> command;
+        std::cin.ignore();
+
+        if (command == "1") {
+            std::cout << "Enter text:\n";
+            text_input();
+        }
+        else if (command == "2") {
+            std::cout << "New line is started\n";
+            std::cout << "\n";
+        }
+        else if (command == "3") {
+            std::cout << "Enter the file name for saving:\n";
+            std::string filename;
+            std::cin >> filename;
+            save_text(filename);
+            std::cout << "Text has been saved successfully\n";
+        }
+        else if (command == "4") {
+            std::cout << "Enter the file name for loading:\n";
+            std::string filename;
+            std::cin >> filename;
+            load_text(filename);
+            std::cout << "Text has been loaded successfully\n";
+        }
+        else if (command == "5") {
+            // implement functionality for command 5
+        }
+        else if (command == "6") {
+            // implement functionality for command 6
+        }
+        else if (command == "7") {
+            // implement functionality for command 7
+        }
+        else if (command == "help") {
+            std::cout << "1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file\n";
+        }
+        else if (command == "exit") {
+            std::cout << "Exit\n";
+            break;
+        }
+        else {
+            std::cout << "Invalid command\n";
+        }
     }
 
     return 0;
@@ -59,13 +65,9 @@ int main() {
 
 int text_input() {
     std::string text;
-    std::cout << "Enter text ";
 
-    while (true) {
-        std::getline(std::cin, text);
-        if (text == "\0") {
-            break;
-        }
+    std::getline(std::cin, text);
+    if (text != "/0") {
         text_lines.push_back(text);
     }
 
