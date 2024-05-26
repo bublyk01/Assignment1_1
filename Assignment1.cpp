@@ -6,6 +6,7 @@
 int text_input();
 int save_text(const std::string& filename);
 int load_text(const std::string& filename);
+char getCharAt(const std::vector<std::string>& lines, int lineNumber, int index);
 
 std::vector<std::string> text_lines;
 
@@ -47,13 +48,23 @@ int main() {
             }
         }
         else if (command == "6") {
-            // implement functionality for command 6
+            int lineNumber, index;
+            std::cout << "Enter line number: ";
+            std::cin >> lineNumber;
+            std::cout << "Enter index: ";
+            std::cin >> index;
+            std::cin.ignore();
+
+            char result = getCharAt(text_lines, lineNumber - 1, index);
+            if (result != '\0') {
+                std::cout << "Character at line " << lineNumber << " and index " << index << " is: " << result << std::endl;
+            }
         }
         else if (command == "7") {
             // implement functionality for command 7
         }
         else if (command == "help") {
-            std::cout << "1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file\n";
+            std::cout << "1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert, 7 - search\n";
         }
         else if (command == "exit") {
             std::cout << "Exiting the program...\n";
@@ -72,7 +83,6 @@ int text_input() {
     std::cout << "Enter text: ";
     std::getline(std::cin, text);
     text_lines.push_back(text);
-
     return 0;
 }
 
@@ -108,4 +118,19 @@ int load_text(const std::string& filename) {
         std::cout << "Error opening file for loading\n";
     }
     return 0;
+}
+
+char getCharAt(const std::vector<std::string>& lines, int lineNumber, int index) {
+    if (lineNumber < 0 || lineNumber >= lines.size()) {
+        std::cerr << "Line number out of range" << std::endl;
+        return '\0';
+    }
+
+    const std::string& line = lines[lineNumber];
+    if (index < 0 || index >= line.size()) {
+        std::cerr << "Index out of range" << std::endl;
+        return '\0';
+    }
+
+    return line[index];
 }
