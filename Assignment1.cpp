@@ -8,6 +8,7 @@ int save_text(const std::string& filename);
 int load_text(const std::string& filename);
 char getCharAt(const std::vector<std::string>& lines, int lineNumber, int index);
 void insertTextAt(std::vector<std::string>& lines, int lineNumber, int index, const std::string& text);
+std::vector<std::pair<int, int>> searchText(const std::vector<std::string>& lines, const std::string& searchText);
 
 std::vector<std::string> text_lines;
 
@@ -61,7 +62,19 @@ int main() {
             insertTextAt(text_lines, lineNumber - 1, index, text);
         }
         else if (command == "7") {
-            // implement functionality for command 7
+            std::cout << "Enter text to search: ";
+            std::string search_text;
+            std::getline(std::cin, search_text);
+
+            std::vector<std::pair<int, int>> positions = searchText(text_lines, search_text);
+            if (positions.empty()) {
+                std::cout << "Text not found\n";
+            }
+            else {
+                for (const auto& pos : positions) {
+                    std::cout << "Text is present in this position: " << pos.first + 1 << " " << pos.second << "\n";
+                }
+            }
         }
         else if (command == "help") {
             std::cout << "1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search\n";
@@ -148,4 +161,16 @@ void insertTextAt(std::vector<std::string>& lines, int lineNumber, int index, co
     }
 
     line.insert(index, text);
+}
+
+std::vector<std::pair<int, int>> searchText(const std::vector<std::string>& lines, const std::string& searchText) {
+    std::vector<std::pair<int, int>> positions;
+    for (int i = 0; i < lines.size(); ++i) {
+        size_t pos = lines[i].find(searchText);
+        while (pos != std::string::npos) {
+            positions.emplace_back(i, pos);
+            pos = lines[i].find(searchText, pos + 1);
+        }
+    }
+    return positions;
 }
