@@ -3,12 +3,15 @@
 #include <vector>
 #include <fstream>
 
+#define CLEAR_COMMAND "cls"
+
 int text_input();
 int save_text(const std::string& filename);
 int load_text(const std::string& filename);
 char getCharAt(const std::vector<std::string>& lines, int lineNumber, int index);
 void insertTextAt(std::vector<std::string>& lines, int lineNumber, int index, const std::string& text);
 std::vector<std::pair<int, int>> searchText(const std::vector<std::string>& lines, const std::string& searchText);
+void clearConsole();
 
 std::vector<std::string> text_lines;
 
@@ -16,6 +19,7 @@ int main() {
     std::string command;
 
     while (true) {
+        clearConsole();
         std::cout << "Choose the command (or type 'exit' to quit): ";
         std::cin >> command;
         std::cin.ignore();
@@ -86,9 +90,16 @@ int main() {
         else {
             std::cout << "Invalid command\n";
         }
+
+        std::cout << "Press Enter to continue...";
+        std::cin.ignore();
     }
 
     return 0;
+}
+
+void clearConsole() {
+    system(CLEAR_COMMAND);
 }
 
 int text_input() {
