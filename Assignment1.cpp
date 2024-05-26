@@ -41,7 +41,10 @@ int main() {
             std::cout << "Text has been loaded successfully\n";
         }
         else if (command == "5") {
-            // implement functionality for command 5
+            std::cout << "You wrote:\n";
+            for (const auto& line : text_lines) {
+                std::cout << line << "\n";
+            }
         }
         else if (command == "6") {
             // implement functionality for command 6
@@ -69,11 +72,6 @@ int text_input() {
     std::cout << "Enter text: ";
     std::getline(std::cin, text);
     text_lines.push_back(text);
-
-    std::cout << "You wrote:\n";
-    for (const auto& line : text_lines) {
-        std::cout << line << "\n";
-    }
 
     return 0;
 }
