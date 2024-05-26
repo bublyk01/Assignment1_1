@@ -7,6 +7,7 @@ int text_input();
 int save_text(const std::string& filename);
 int load_text(const std::string& filename);
 char getCharAt(const std::vector<std::string>& lines, int lineNumber, int index);
+void insertTextAt(std::vector<std::string>& lines, int lineNumber, int index, const std::string& text);
 
 std::vector<std::string> text_lines;
 
@@ -49,22 +50,21 @@ int main() {
         }
         else if (command == "6") {
             int lineNumber, index;
-            std::cout << "Enter line number: ";
-            std::cin >> lineNumber;
-            std::cout << "Enter index: ";
-            std::cin >> index;
+            std::cout << "Enter line number and index: ";
+            std::cin >> lineNumber >> index;
             std::cin.ignore();
 
-            char result = getCharAt(text_lines, lineNumber - 1, index);
-            if (result != '\0') {
-                std::cout << "Character at line " << lineNumber << " and index " << index << " is: " << result << std::endl;
-            }
+            std::cout << "Enter text to insert: ";
+            std::string text;
+            std::getline(std::cin, text);
+
+            insertTextAt(text_lines, lineNumber - 1, index, text);
         }
         else if (command == "7") {
             // implement functionality for command 7
         }
         else if (command == "help") {
-            std::cout << "1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert, 7 - search\n";
+            std::cout << "1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search\n";
         }
         else if (command == "exit") {
             std::cout << "Exiting the program...\n";
@@ -133,4 +133,19 @@ char getCharAt(const std::vector<std::string>& lines, int lineNumber, int index)
     }
 
     return line[index];
+}
+
+void insertTextAt(std::vector<std::string>& lines, int lineNumber, int index, const std::string& text) {
+    if (lineNumber < 0 || lineNumber >= lines.size()) {
+        std::cerr << "Line number out of range" << std::endl;
+        return;
+    }
+
+    std::string& line = lines[lineNumber];
+    if (index < 0 || index > line.size()) {
+        std::cerr << "Index out of range" << std::endl;
+        return;
+    }
+
+    line.insert(index, text);
 }
