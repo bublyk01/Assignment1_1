@@ -76,7 +76,7 @@ int main() {
             }
             else {
                 for (const auto& pos : positions) {
-                    std::cout << "Text is present in this position: " << pos.first + 1 << " " << pos.second << "\n";
+                    std::cout << "Text was found in this position: " << pos.first + 1 << " " << pos.second << "\n";
                 }
             }
         }
@@ -119,7 +119,7 @@ int save_text(const std::string& filename) {
         file.close();
     }
     else {
-        std::cout << "Error opening file for saving\n";
+        std::cout << "Could not create the file\n";
     }
     return 0;
 }
@@ -139,7 +139,7 @@ int load_text(const std::string& filename) {
         }
     }
     else {
-        std::cout << "Error opening file for loading\n";
+        std::cout << "Could not open the file\n";
     }
     return 0;
 }
