@@ -20,7 +20,7 @@ int main() {
 
     while (true) {
         clearConsole();
-        std::cout << "Choose the command (or type 'exit' to quit): ";
+        std::cout << "Choose the command: ";
         std::cin >> command;
         std::cin.ignore();
 
@@ -28,7 +28,7 @@ int main() {
             text_input();
         }
         else if (command == "2") {
-            std::cout << "Enter new line text: ";
+            std::cout << "Enter your text: ";
             std::string new_line;
             std::getline(std::cin, new_line);
             text_lines.push_back(new_line);
@@ -55,7 +55,7 @@ int main() {
         }
         else if (command == "6") {
             int lineNumber, index;
-            std::cout << "Enter line number and index: ";
+            std::cout << "Enter the line number along with index: ";
             std::cin >> lineNumber >> index;
             std::cin.ignore();
 
@@ -76,7 +76,7 @@ int main() {
             }
             else {
                 for (const auto& pos : positions) {
-                    std::cout << "Text was found in this position: " << pos.first + 1 << " " << pos.second << "\n";
+                    std::cout << "Text was found in this position: " << pos.first + 1 << " " << pos.second + 1 << "\n";
                 }
             }
         }
@@ -88,7 +88,7 @@ int main() {
             break;
         }
         else {
-            std::cout << "Invalid command\n";
+            std::cout << "Command was not found\n";
         }
 
         std::cout << "Press Enter to continue...";
@@ -108,7 +108,7 @@ int text_input() {
     std::getline(std::cin, text);
     text_lines.push_back(text);
     return 0;
-}
+} 
 
 int save_text(const std::string& filename) {
     std::ofstream file(filename);
