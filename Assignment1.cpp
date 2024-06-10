@@ -104,11 +104,16 @@ void clearConsole() {
 
 int text_input() {
     std::string text;
-    std::cout << "Enter text: ";
-    std::getline(std::cin, text);
-    text_lines.push_back(text);
+    std::cout << "Enter text:\n";
+    while (true) {
+        std::getline(std::cin, text);
+        if (text.empty()) {
+            break;
+        }
+        text_lines.push_back(text);
+    }
     return 0;
-} 
+}
 
 int save_text(const std::string& filename) {
     std::ofstream file(filename);
