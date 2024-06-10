@@ -28,32 +28,26 @@ int main() {
             text_input();
         }
         else if (command == "2") {
-            std::cout << "Enter your text: ";
-            std::string new_line;
-            std::getline(std::cin, new_line);
-            text_lines.push_back(new_line);
-        }
-        else if (command == "3") {
             std::cout << "Enter the file name for saving: ";
             std::string filename;
             std::cin >> filename;
             save_text(filename);
             std::cout << "Text has been saved successfully\n";
         }
-        else if (command == "4") {
+        else if (command == "3") {
             std::cout << "Enter the file name for loading: ";
             std::string filename;
             std::cin >> filename;
             load_text(filename);
             std::cout << "Text has been loaded successfully\n";
         }
-        else if (command == "5") {
+        else if (command == "4") {
             std::cout << "You wrote:\n";
             for (const auto& line : text_lines) {
                 std::cout << line << "\n";
             }
         }
-        else if (command == "6") {
+        else if (command == "5") {
             int lineNumber, index;
             std::cout << "Enter the line number along with index: ";
             std::cin >> lineNumber >> index;
@@ -65,7 +59,7 @@ int main() {
 
             insertTextAt(text_lines, lineNumber - 1, index, text);
         }
-        else if (command == "7") {
+        else if (command == "6") {
             std::cout << "Enter text to search: ";
             std::string search_text;
             std::getline(std::cin, search_text);
