@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <fstream>
+#include <utility>
 
 #define CLEAR_COMMAND "cls"
 
@@ -16,6 +16,65 @@ void deleteText(char**& lines, int& lineCount, int lineNumber, int index, int nu
 
 char** text_lines = nullptr;
 int line_count = 0;
+
+size_t strlen(const char* str) {
+    const char* s = str;
+    while (*s) ++s;
+    return s - str;
+}
+
+void strcpy(char* dest, size_t destsz, const char* src) {
+    if (destsz == 0) return;
+    size_t i;
+    for (i = 0; i < destsz - 1 && src[i] != '\0'; ++i) {
+        dest[i] = src[i];
+    }
+    dest[i] = '\0';
+}
+
+
+size_t strcspn(const char* str, const char* reject) {
+    const char* s = str;
+    while (*s) {
+        for (const char* r = reject; *r; ++r) {
+            if (*s == *r) {
+                return s - str;
+            }
+        }
+        ++s;
+    }
+    return s - str;
+}
+
+const char* strstr(const char* haystack, const char* needle) {
+    if (!*needle) return haystack;
+    for (; *haystack; ++haystack) {
+        if ((*haystack == *needle) && !std::memcmp(haystack, needle, strlen(needle))) {
+            return haystack;
+        }
+    }
+    return nullptr;
+}
+
+void* memmove(void* dest, const void* src, size_t n) {
+    if (dest == nullptr || src == nullptr) return nullptr;
+    char* d = (char*)dest;
+    const char* s = (const char*)src;
+    if (d < s) {
+        while (n--) {
+            *d++ = *s++;
+        }
+    }
+    else {
+        const char* lasts = s + (n - 1);
+        char* lastd = d + (n - 1);
+        while (n--) {
+            *lastd-- = *lasts--;
+        }
+    }
+    return dest;
+}
+
 
 int main() {
     char command[10];
@@ -115,21 +174,22 @@ void clearConsole() {
 
 int text_input() {
     char text[1024];
-    printf("Enter text:\n");
+    printf("Enter text (type 'end' to finish):\n");
     while (true) {
         if (!fgets(text, 1024, stdin)) break;
         text[strcspn(text, "\n")] = '\0';
-        if (text[0] == '\0') {
+        if (strcmp(text, "end") == 0) {
             break;
         }
 
         text_lines = (char**)realloc(text_lines, (line_count + 1) * sizeof(char*));
         text_lines[line_count] = (char*)malloc((strlen(text) + 1) * sizeof(char));
-        strcpy_s(text_lines[line_count], strlen(text) + 1, text);
+        strcpy(text_lines[line_count], strlen(text) + 1, text);
         ++line_count;
     }
     return 0;
 }
+
 
 int save_text(const char* filename) {
     std::ofstream file(filename);
@@ -156,7 +216,7 @@ int load_text(const char* filename) {
             buffer[strcspn(buffer, "\n")] = '\0';
             text_lines = (char**)realloc(text_lines, (line_count + 1) * sizeof(char*));
             text_lines[line_count] = (char*)malloc((strlen(buffer) + 1) * sizeof(char));
-            strcpy_s(text_lines[line_count], strlen(buffer) + 1, buffer);
+            strcpy(text_lines[line_count], strlen(buffer) + 1, buffer);
             ++line_count;
         }
         fclose(file);
@@ -188,7 +248,7 @@ void insertTextAt(char**& lines, int& lineCount, int lineNumber, int index, cons
 
     line = (char*)realloc(line, (lineLength + textLength + 1) * sizeof(char));
     memmove(line + index + textLength, line + index, lineLength - index + 1);
-    memcpy(line + index, text, textLength);
+    std::memcpy(line + index, text, textLength);
     lines[lineNumber] = line;
 }
 
