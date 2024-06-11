@@ -22,7 +22,7 @@ int main() {
     while (true) {
         clearConsole();
         printf("Choose the command: ");
-        scanf("%9s", command);
+        scanf_s("%9s", command);
         getchar();
 
         if (strcmp(command, "1") == 0) {
@@ -31,14 +31,14 @@ int main() {
         else if (strcmp(command, "2") == 0) {
             printf("Enter the file name for saving: ");
             char filename[256];
-            scanf("%255s", filename);
+            scanf_s("%255s", filename);
             save_text(filename);
             printf("Text has been saved successfully\n");
         }
         else if (strcmp(command, "3") == 0) {
             printf("Enter the file name for loading: ");
             char filename[256];
-            scanf("%255s", filename);
+            scanf_s("%255s", filename);
             load_text(filename);
             printf("Text has been loaded successfully\n");
         }
@@ -54,7 +54,7 @@ int main() {
         else if (strcmp(command, "5") == 0) {
             int lineNumber, index;
             printf("Enter the line number along with index: ");
-            scanf("%d %d", &lineNumber, &index);
+            scanf_s("%d %d", &lineNumber, &index);
             getchar();
 
             printf("Enter text to insert: ");
@@ -134,8 +134,8 @@ int save_text(const char* filename) {
 }
 
 int load_text(const char* filename) {
-    FILE* file = fopen(filename, "r");
-    if (file) {
+    FILE* file;
+    if (fopen_s(&file, filename, "r") == 0) {
         char buffer[1024];
         text_lines.clear();
         while (fgets(buffer, sizeof(buffer), file)) {
@@ -143,13 +143,13 @@ int load_text(const char* filename) {
             text_lines.push_back(std::vector<char>(buffer, buffer + strlen(buffer)));
         }
         fclose(file);
-        printf("Loaded text:\n");
-        for (const auto& line : text_lines) {
-            for (char c : line) {
-                putchar(c);
+            printf("Loaded text:\n");
+            for (const auto& line : text_lines) {
+                for (char c : line) {
+                    putchar(c);
+                }
+                putchar('\n');
             }
-            putchar('\n');
-        }
     }
     else {
         printf("Could not open the file\n");
