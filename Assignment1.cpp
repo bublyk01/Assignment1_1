@@ -1,92 +1,98 @@
-#include <iostream>
-#include <string>
 #include <vector>
 #include <fstream>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #define CLEAR_COMMAND "cls"
 
 int text_input();
-int save_text(const std::string& filename);
-int load_text(const std::string& filename);
-char getCharAt(const std::vector<std::string>& lines, int lineNumber, int index);
-void insertTextAt(std::vector<std::string>& lines, int lineNumber, int index, const std::string& text);
-std::vector<std::pair<int, int>> searchText(const std::vector<std::string>& lines, const std::string& searchText);
+int save_text(const char* filename);
+int load_text(const char* filename);
+char getCharAt(const std::vector<std::vector<char>>& lines, int lineNumber, int index);
+void insertTextAt(std::vector<std::vector<char>>& lines, int lineNumber, int index, const char* text);
+std::vector<std::pair<int, int>> searchText(const std::vector<std::vector<char>>& lines, const char* searchText);
 void clearConsole();
 
-std::vector<std::string> text_lines;
+std::vector<std::vector<char>> text_lines;
 
 int main() {
-    std::string command;
+    char command[10];
 
     while (true) {
         clearConsole();
-        std::cout << "Choose the command: ";
-        std::cin >> command;
-        std::cin.ignore();
+        printf("Choose the command: ");
+        scanf("%9s", command);
+        getchar();
 
-        if (command == "1") {
+        if (strcmp(command, "1") == 0) {
             text_input();
         }
-        else if (command == "2") {
-            std::cout << "Enter the file name for saving: ";
-            std::string filename;
-            std::cin >> filename;
+        else if (strcmp(command, "2") == 0) {
+            printf("Enter the file name for saving: ");
+            char filename[256];
+            scanf("%255s", filename);
             save_text(filename);
-            std::cout << "Text has been saved successfully\n";
+            printf("Text has been saved successfully\n");
         }
-        else if (command == "3") {
-            std::cout << "Enter the file name for loading: ";
-            std::string filename;
-            std::cin >> filename;
+        else if (strcmp(command, "3") == 0) {
+            printf("Enter the file name for loading: ");
+            char filename[256];
+            scanf("%255s", filename);
             load_text(filename);
-            std::cout << "Text has been loaded successfully\n";
+            printf("Text has been loaded successfully\n");
         }
-        else if (command == "4") {
-            std::cout << "You wrote:\n";
+        else if (strcmp(command, "4") == 0) {
+            printf("You wrote:\n");
             for (const auto& line : text_lines) {
-                std::cout << line << "\n";
+                for (char c : line) {
+                    putchar(c);
+                }
+                putchar('\n');
             }
         }
-        else if (command == "5") {
+        else if (strcmp(command, "5") == 0) {
             int lineNumber, index;
-            std::cout << "Enter the line number along with index: ";
-            std::cin >> lineNumber >> index;
-            std::cin.ignore();
+            printf("Enter the line number along with index: ");
+            scanf("%d %d", &lineNumber, &index);
+            getchar();
 
-            std::cout << "Enter text to insert: ";
-            std::string text;
-            std::getline(std::cin, text);
+            printf("Enter text to insert: ");
+            char text[1024];
+            fgets(text, 1024, stdin);
+            text[strcspn(text, "\n")] = '\0';
 
             insertTextAt(text_lines, lineNumber - 1, index, text);
         }
-        else if (command == "6") {
-            std::cout << "Enter text to search: ";
-            std::string search_text;
-            std::getline(std::cin, search_text);
+        else if (strcmp(command, "6") == 0) {
+            printf("Enter text to search: ");
+            char search_text[256];
+            fgets(search_text, 256, stdin);
+            search_text[strcspn(search_text, "\n")] = '\0';
 
             std::vector<std::pair<int, int>> positions = searchText(text_lines, search_text);
             if (positions.empty()) {
-                std::cout << "Text not found\n";
+                printf("Text not found\n");
             }
             else {
                 for (const auto& pos : positions) {
-                    std::cout << "Text was found in this position: " << pos.first + 1 << " " << pos.second + 1 << "\n";
+                    printf("Text was found in this position: %d %d\n", pos.first + 1, pos.second + 1);
                 }
             }
         }
-        else if (command == "help") {
-            std::cout << "1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search\n";
+        else if (strcmp(command, "help") == 0) {
+            printf("1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search\n");
         }
-        else if (command == "exit") {
-            std::cout << "Exiting the program...\n";
+        else if (strcmp(command, "exit") == 0) {
+            printf("Exiting the program...\n");
             break;
         }
         else {
-            std::cout << "Command was not found\n";
+            printf("Command was not found\n");
         }
 
-        std::cout << "Press Enter to continue...";
-        std::cin.ignore();
+        printf("Press Enter to continue...");
+        getchar();
     }
 
     return 0;
@@ -97,89 +103,99 @@ void clearConsole() {
 }
 
 int text_input() {
-    std::string text;
-    std::cout << "Enter text:\n";
+    char text[1024];
+    printf("Enter text:\n");
     while (true) {
-        std::getline(std::cin, text);
-        if (text.empty()) {
+        if (!fgets(text, 1024, stdin)) break;
+        text[strcspn(text, "\n")] = '\0';
+        if (text[0] == '\0') {
             break;
         }
-        text_lines.push_back(text);
+        text_lines.push_back(std::vector<char>(text, text + strlen(text)));
     }
     return 0;
 }
 
-int save_text(const std::string& filename) {
+int save_text(const char* filename) {
     std::ofstream file(filename);
     if (file.is_open()) {
         for (const auto& line : text_lines) {
-            file << line << "\n";
+            for (char c : line) {
+                file.put(c);
+            }
+            file.put('\n');
         }
         file.close();
     }
     else {
-        std::cout << "Could not create the file\n";
+        printf("Could not create the file\n");
     }
     return 0;
 }
 
-int load_text(const std::string& filename) {
-    std::ifstream file(filename);
-    if (file.is_open()) {
-        std::string line;
+int load_text(const char* filename) {
+    FILE* file = fopen(filename, "r");
+    if (file) {
+        char buffer[1024];
         text_lines.clear();
-        while (std::getline(file, line)) {
-            text_lines.push_back(line);
+        while (fgets(buffer, sizeof(buffer), file)) {
+            buffer[strcspn(buffer, "\n")] = '\0';
+            text_lines.push_back(std::vector<char>(buffer, buffer + strlen(buffer)));
         }
-        file.close();
-        std::cout << "Loaded text:\n";
+        fclose(file);
+        printf("Loaded text:\n");
         for (const auto& line : text_lines) {
-            std::cout << line << "\n";
+            for (char c : line) {
+                putchar(c);
+            }
+            putchar('\n');
         }
     }
     else {
-        std::cout << "Could not open the file\n";
+        printf("Could not open the file\n");
     }
     return 0;
 }
 
-char getCharAt(const std::vector<std::string>& lines, int lineNumber, int index) {
+char getCharAt(const std::vector<std::vector<char>>& lines, int lineNumber, int index) {
     if (lineNumber < 0 || lineNumber >= lines.size()) {
-        std::cerr << "Line number out of range" << std::endl;
+        fprintf(stderr, "Line number out of range\n");
         return '\0';
     }
 
-    const std::string& line = lines[lineNumber];
+    const std::vector<char>& line = lines[lineNumber];
     if (index < 0 || index >= line.size()) {
-        std::cerr << "Index out of range" << std::endl;
+        fprintf(stderr, "Index out of range\n");
         return '\0';
     }
 
     return line[index];
 }
 
-void insertTextAt(std::vector<std::string>& lines, int lineNumber, int index, const std::string& text) {
+void insertTextAt(std::vector<std::vector<char>>& lines, int lineNumber, int index, const char* text) {
     if (lineNumber < 0 || lineNumber >= lines.size()) {
-        std::cerr << "Line number out of range" << std::endl;
+        fprintf(stderr, "Line number out of range\n");
         return;
     }
 
-    std::string& line = lines[lineNumber];
+    std::vector<char>& line = lines[lineNumber];
     if (index < 0 || index > line.size()) {
-        std::cerr << "Index out of range" << std::endl;
+        fprintf(stderr, "Index out of range\n");
         return;
     }
 
-    line.insert(index, text);
+    line.insert(line.begin() + index, text, text + strlen(text));
 }
 
-std::vector<std::pair<int, int>> searchText(const std::vector<std::string>& lines, const std::string& searchText) {
+std::vector<std::pair<int, int>> searchText(const std::vector<std::vector<char>>& lines, const char* searchText) {
     std::vector<std::pair<int, int>> positions;
+    std::string search(searchText);
     for (int i = 0; i < lines.size(); ++i) {
-        size_t pos = lines[i].find(searchText);
+        std::string line(lines[i].begin(), lines[i].end());
+        size_t pos = line.find(search);
         while (pos != std::string::npos) {
             positions.emplace_back(i, pos);
-            pos = lines[i].find(searchText, pos + 1);
+            pos = line.find(search, pos + 1);
         }
     }
     return positions;
