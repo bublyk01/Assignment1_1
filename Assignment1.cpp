@@ -79,6 +79,15 @@ int main() {
             }
             delete[] positions;
         }
+        else if (strcmp(command, "7") == 0) {
+            int lineNumber;
+            printf("Enter the line number to delete: ");
+            scanf_s("%d", &lineNumber);
+            getchar();
+
+            deleteLine(text_lines, line_count, lineNumber - 1);
+            printf("Line %d has been deleted successfully\n", lineNumber);
+        }
         else if (strcmp(command, "help") == 0) {
             printf("1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search\n");
         }
@@ -206,3 +215,20 @@ void freeTextLines(char**& lines, int lineCount) {
     free(lines);
     lines = nullptr;
 }
+
+void deleteLine(char**& lines, int& lineCount, int lineNumber) {
+    if (lineNumber < 0 || lineNumber >= lineCount) {
+        fprintf(stderr, "This line is not in the text\n");
+        return;
+    }
+
+    free(lines[lineNumber]);
+
+    for (int i = lineNumber; i < lineCount - 1; ++i) {
+        lines[i] = lines[i + 1];
+    }
+
+    --lineCount;
+    lines = (char**)realloc(lines, lineCount * sizeof(char*));
+}
+
