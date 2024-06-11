@@ -17,6 +17,17 @@ void deleteText(char**& lines, int& lineCount, int lineNumber, int index, int nu
 char** text_lines = nullptr;
 int line_count = 0;
 
+struct Command {
+    char name[10];
+    char text[1024];
+    int lineNumber;
+    int index;
+    int numChars;
+};
+
+Command commandHistory[3];
+int commandIndex = 0;
+
 size_t strlen(const char* str) {
     const char* s = str;
     while (*s) ++s;
@@ -31,7 +42,6 @@ void strcpy(char* dest, size_t destsz, const char* src) {
     }
     dest[i] = '\0';
 }
-
 
 size_t strcspn(const char* str, const char* reject) {
     const char* s = str;
@@ -75,6 +85,50 @@ void* memmove(void* dest, const void* src, size_t n) {
     return dest;
 }
 
+int strcmp(const char* s1, const char* s2) {
+    while (*s1 && (*s1 == *s2)) {
+        ++s1;
+        ++s2;
+    }
+    return *(unsigned char*)s1 - *(unsigned char*)s2;
+}
+
+void strncpy_s(char* dest, const char* src, size_t n) {
+    size_t i;
+    for (i = 0; i < n && src[i] != '\0'; ++i) {
+        dest[i] = src[i];
+    }
+    for (; i < n; ++i) {
+        dest[i] = '\0';
+    }
+}
+
+void addCommandToHistory(const char* name, const char* text = "", int lineNumber = -1, int index = -1, int numChars = -1) {
+    strcpy(commandHistory[commandIndex].name, 10, name);
+    strcpy(commandHistory[commandIndex].text, 1024, text);
+    commandHistory[commandIndex].lineNumber = lineNumber;
+    commandHistory[commandIndex].index = index;
+    commandHistory[commandIndex].numChars = numChars;
+    commandIndex = (commandIndex + 1) % 3;
+}
+
+void undoLastCommand() {
+    if (commandIndex == 0) {
+        commandIndex = 2;
+    }
+    else {
+        commandIndex--;
+    }
+    Command lastCommand = commandHistory[commandIndex];
+
+    if (strcmp(lastCommand.name, "insert") == 0) {
+        deleteText(text_lines, line_count, lastCommand.lineNumber, lastCommand.index, strlen(lastCommand.text));
+    }
+    else if (strcmp(lastCommand.name, "delete") == 0) {
+        insertTextAt(text_lines, line_count, lastCommand.lineNumber, lastCommand.index, lastCommand.text);
+    }
+    strcpy(commandHistory[commandIndex].name, 10, "");
+}
 
 int main() {
     char command[10];
@@ -87,6 +141,7 @@ int main() {
 
         if (strcmp(command, "1") == 0) {
             text_input();
+            addCommandToHistory("input");
         }
         else if (strcmp(command, "2") == 0) {
             printf("Enter the file name for saving: ");
@@ -120,6 +175,7 @@ int main() {
             text[strcspn(text, "\n")] = '\0';
 
             insertTextAt(text_lines, line_count, lineNumber - 1, index, text);
+            addCommandToHistory("insert", text, lineNumber - 1, index);
         }
         else if (strcmp(command, "6") == 0) {
             printf("Enter text to search: ");
@@ -145,11 +201,22 @@ int main() {
             scanf_s("%d %d %d", &lineNumber, &index, &numChars);
             getchar();
 
+            char* deletedText = new char[numChars + 1];
+            strncpy_s(deletedText, &text_lines[lineNumber - 1][index], numChars);
+            deletedText[numChars] = '\0';
+
             deleteText(text_lines, line_count, lineNumber - 1, index, numChars);
+            addCommandToHistory("delete", deletedText, lineNumber - 1, index, numChars);
+
+            delete[] deletedText;
             printf("Text has been deleted successfully\n");
         }
         else if (strcmp(command, "help") == 0) {
-            printf("1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search\n");
+            printf("1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search, 8 - undo\n");
+        }
+        else if (strcmp(command, "8") == 0) {
+            undoLastCommand();
+            printf("Last command undone\n");
         }
         else if (strcmp(command, "exit") == 0) {
             printf("Exiting the program...\n");
@@ -189,7 +256,6 @@ int text_input() {
     }
     return 0;
 }
-
 
 int save_text(const char* filename) {
     std::ofstream file(filename);
