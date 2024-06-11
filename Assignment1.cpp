@@ -12,7 +12,7 @@ void insertTextAt(char**& lines, int& lineCount, int lineNumber, int index, cons
 std::pair<int, int>* searchText(char** lines, int lineCount, const char* searchText, int& resultCount);
 void clearConsole();
 void freeTextLines(char**& lines, int lineCount);
-void deleteLine(char**& lines, int& lineCount, int lineNumber);
+void deleteText(char**& lines, int& lineCount, int lineNumber, int index, int numChars);
 
 char** text_lines = nullptr;
 int line_count = 0;
@@ -81,13 +81,13 @@ int main() {
             delete[] positions;
         }
         else if (strcmp(command, "7") == 0) {
-            int lineNumber;
-            printf("Enter the line number to delete: ");
-            scanf_s("%d", &lineNumber);
+            int lineNumber, index, numChars;
+            printf("Choose line, index and number of symbols: ");
+            scanf_s("%d %d %d", &lineNumber, &index, &numChars);
             getchar();
 
-            deleteLine(text_lines, line_count, lineNumber - 1);
-            printf("Line %d has been deleted successfully\n", lineNumber);
+            deleteText(text_lines, line_count, lineNumber - 1, index, numChars);
+            printf("Text has been deleted successfully\n");
         }
         else if (strcmp(command, "help") == 0) {
             printf("1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search\n");
@@ -217,19 +217,23 @@ void freeTextLines(char**& lines, int lineCount) {
     lines = nullptr;
 }
 
-void deleteLine(char**& lines, int& lineCount, int lineNumber) {
+void deleteText(char**& lines, int& lineCount, int lineNumber, int index, int numChars) {
     if (lineNumber < 0 || lineNumber >= lineCount) {
         fprintf(stderr, "This line is not in the text\n");
         return;
     }
 
-    free(lines[lineNumber]);
+    char* line = lines[lineNumber];
+    int lineLength = (int)strlen(line);
 
-    for (int i = lineNumber; i < lineCount - 1; ++i) {
-        lines[i] = lines[i + 1];
+    if (index < 0 || index >= lineLength) {
+        fprintf(stderr, "This index is not in the text\n");
+        return;
     }
 
-    --lineCount;
-    lines = (char**)realloc(lines, lineCount * sizeof(char*));
-}
+    if (index + numChars > lineLength) {
+        numChars = lineLength - index;
+    }
 
+    memmove(line + index, line + index + numChars, lineLength - index - numChars + 1);
+}
