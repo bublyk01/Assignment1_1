@@ -12,6 +12,7 @@ void insertTextAt(char**& lines, int& lineCount, int lineNumber, int index, cons
 std::pair<int, int>* searchText(char** lines, int lineCount, const char* searchText, int& resultCount);
 void clearConsole();
 void freeTextLines(char**& lines, int lineCount);
+void deleteLine(char**& lines, int& lineCount, int lineNumber);
 
 char** text_lines = nullptr;
 int line_count = 0;
