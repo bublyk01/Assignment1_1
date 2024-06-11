@@ -9,7 +9,6 @@
 int text_input();
 int save_text(const char* filename);
 int load_text(const char* filename);
-char getCharAt(const std::vector<std::vector<char>>& lines, int lineNumber, int index);
 void insertTextAt(std::vector<std::vector<char>>& lines, int lineNumber, int index, const char* text);
 std::vector<std::pair<int, int>> searchText(const std::vector<std::vector<char>>& lines, const char* searchText);
 void clearConsole();
@@ -22,7 +21,7 @@ int main() {
     while (true) {
         clearConsole();
         printf("Choose the command: ");
-        scanf_s("%9s", command);
+        scanf_s("%9s", command, (unsigned)_countof(command));
         getchar();
 
         if (strcmp(command, "1") == 0) {
@@ -31,14 +30,14 @@ int main() {
         else if (strcmp(command, "2") == 0) {
             printf("Enter the file name for saving: ");
             char filename[256];
-            scanf_s("%255s", filename);
+            scanf_s("%255s", filename, (unsigned)_countof(filename));
             save_text(filename);
             printf("Text has been saved successfully\n");
         }
         else if (strcmp(command, "3") == 0) {
             printf("Enter the file name for loading: ");
             char filename[256];
-            scanf_s("%255s", filename);
+            scanf_s("%255s", filename, (unsigned)_countof(filename));
             load_text(filename);
             printf("Text has been loaded successfully\n");
         }
@@ -143,33 +142,18 @@ int load_text(const char* filename) {
             text_lines.push_back(std::vector<char>(buffer, buffer + strlen(buffer)));
         }
         fclose(file);
-            printf("Loaded text:\n");
-            for (const auto& line : text_lines) {
-                for (char c : line) {
-                    putchar(c);
-                }
-                putchar('\n');
+        printf("Loaded text:\n");
+        for (const auto& line : text_lines) {
+            for (char c : line) {
+                putchar(c);
             }
+            putchar('\n');
+        }
     }
     else {
         printf("Could not open the file\n");
     }
     return 0;
-}
-
-char getCharAt(const std::vector<std::vector<char>>& lines, int lineNumber, int index) {
-    if (lineNumber < 0 || lineNumber >= lines.size()) {
-        fprintf(stderr, "Line number out of range\n");
-        return '\0';
-    }
-
-    const std::vector<char>& line = lines[lineNumber];
-    if (index < 0 || index >= line.size()) {
-        fprintf(stderr, "Index out of range\n");
-        return '\0';
-    }
-
-    return line[index];
 }
 
 void insertTextAt(std::vector<std::vector<char>>& lines, int lineNumber, int index, const char* text) {
@@ -189,14 +173,16 @@ void insertTextAt(std::vector<std::vector<char>>& lines, int lineNumber, int ind
 
 std::vector<std::pair<int, int>> searchText(const std::vector<std::vector<char>>& lines, const char* searchText) {
     std::vector<std::pair<int, int>> positions;
-    std::string search(searchText);
-    for (int i = 0; i < lines.size(); ++i) {
-        std::string line(lines[i].begin(), lines[i].end());
-        size_t pos = line.find(search);
-        while (pos != std::string::npos) {
-            positions.emplace_back(i, pos);
-            pos = line.find(search, pos + 1);
+    size_t searchLength = strlen(searchText);
+
+    for (size_t i = 0; i < lines.size(); ++i) {
+        const std::vector<char>& line = lines[i];
+        for (size_t j = 0; j <= line.size() - searchLength; ++j) {
+            if (strncmp(&line[j], searchText, searchLength) == 0) {
+                positions.emplace_back(i, j);
+            }
         }
     }
+
     return positions;
 }
