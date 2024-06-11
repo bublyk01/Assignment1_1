@@ -1,19 +1,20 @@
-#include <vector>
-#include <fstream>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 
 #define CLEAR_COMMAND "cls"
 
 int text_input();
 int save_text(const char* filename);
 int load_text(const char* filename);
-void insertTextAt(std::vector<std::vector<char>>& lines, int lineNumber, int index, const char* text);
-std::vector<std::pair<int, int>> searchText(const std::vector<std::vector<char>>& lines, const char* searchText);
+void insertTextAt(char**& lines, int& lineCount, int lineNumber, int index, const char* text);
+std::pair<int, int>* searchText(char** lines, int lineCount, const char* searchText, int& resultCount);
 void clearConsole();
+void freeTextLines(char**& lines, int lineCount);
 
-std::vector<std::vector<char>> text_lines;
+char** text_lines = nullptr;
+int line_count = 0;
 
 int main() {
     char command[10];
@@ -43,11 +44,8 @@ int main() {
         }
         else if (strcmp(command, "4") == 0) {
             printf("You wrote:\n");
-            for (const auto& line : text_lines) {
-                for (char c : line) {
-                    putchar(c);
-                }
-                putchar('\n');
+            for (int i = 0; i < line_count; ++i) {
+                printf("%s\n", text_lines[i]);
             }
         }
         else if (strcmp(command, "5") == 0) {
@@ -61,7 +59,7 @@ int main() {
             fgets(text, 1024, stdin);
             text[strcspn(text, "\n")] = '\0';
 
-            insertTextAt(text_lines, lineNumber - 1, index, text);
+            insertTextAt(text_lines, line_count, lineNumber - 1, index, text);
         }
         else if (strcmp(command, "6") == 0) {
             printf("Enter text to search: ");
@@ -69,15 +67,17 @@ int main() {
             fgets(search_text, 256, stdin);
             search_text[strcspn(search_text, "\n")] = '\0';
 
-            std::vector<std::pair<int, int>> positions = searchText(text_lines, search_text);
-            if (positions.empty()) {
+            int resultCount;
+            std::pair<int, int>* positions = searchText(text_lines, line_count, search_text, resultCount);
+            if (resultCount == 0) {
                 printf("Text not found\n");
             }
             else {
-                for (const auto& pos : positions) {
-                    printf("Text was found in this position: %d %d\n", pos.first + 1, pos.second + 1);
+                for (int i = 0; i < resultCount; ++i) {
+                    printf("Text was found in this position: %d %d\n", positions[i].first + 1, positions[i].second + 1);
                 }
             }
+            delete[] positions;
         }
         else if (strcmp(command, "help") == 0) {
             printf("1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search\n");
@@ -93,6 +93,8 @@ int main() {
         printf("Press Enter to continue...");
         getchar();
     }
+
+    freeTextLines(text_lines, line_count);
 
     return 0;
 }
@@ -110,7 +112,11 @@ int text_input() {
         if (text[0] == '\0') {
             break;
         }
-        text_lines.push_back(std::vector<char>(text, text + strlen(text)));
+
+        text_lines = (char**)realloc(text_lines, (line_count + 1) * sizeof(char*));
+        text_lines[line_count] = (char*)malloc((strlen(text) + 1) * sizeof(char));
+        strcpy_s(text_lines[line_count], strlen(text) + 1, text);
+        ++line_count;
     }
     return 0;
 }
@@ -118,11 +124,8 @@ int text_input() {
 int save_text(const char* filename) {
     std::ofstream file(filename);
     if (file.is_open()) {
-        for (const auto& line : text_lines) {
-            for (char c : line) {
-                file.put(c);
-            }
-            file.put('\n');
+        for (int i = 0; i < line_count; ++i) {
+            file << text_lines[i] << '\n';
         }
         file.close();
     }
@@ -135,19 +138,21 @@ int save_text(const char* filename) {
 int load_text(const char* filename) {
     FILE* file;
     if (fopen_s(&file, filename, "r") == 0) {
+        freeTextLines(text_lines, line_count);
+        text_lines = nullptr;
+        line_count = 0;
         char buffer[1024];
-        text_lines.clear();
         while (fgets(buffer, sizeof(buffer), file)) {
             buffer[strcspn(buffer, "\n")] = '\0';
-            text_lines.push_back(std::vector<char>(buffer, buffer + strlen(buffer)));
+            text_lines = (char**)realloc(text_lines, (line_count + 1) * sizeof(char*));
+            text_lines[line_count] = (char*)malloc((strlen(buffer) + 1) * sizeof(char));
+            strcpy_s(text_lines[line_count], strlen(buffer) + 1, buffer);
+            ++line_count;
         }
         fclose(file);
         printf("Loaded text:\n");
-        for (const auto& line : text_lines) {
-            for (char c : line) {
-                putchar(c);
-            }
-            putchar('\n');
+        for (int i = 0; i < line_count; ++i) {
+            printf("%s\n", text_lines[i]);
         }
     }
     else {
@@ -156,33 +161,48 @@ int load_text(const char* filename) {
     return 0;
 }
 
-void insertTextAt(std::vector<std::vector<char>>& lines, int lineNumber, int index, const char* text) {
-    if (lineNumber < 0 || lineNumber >= lines.size()) {
+void insertTextAt(char**& lines, int& lineCount, int lineNumber, int index, const char* text) {
+    if (lineNumber < 0 || lineNumber >= lineCount) {
         fprintf(stderr, "Line number out of range\n");
         return;
     }
 
-    std::vector<char>& line = lines[lineNumber];
-    if (index < 0 || index > line.size()) {
+    char* line = lines[lineNumber];
+    int lineLength = (int)strlen(line);
+    int textLength = (int)strlen(text);
+
+    if (index < 0 || index > lineLength) {
         fprintf(stderr, "Index out of range\n");
         return;
     }
 
-    line.insert(line.begin() + index, text, text + strlen(text));
+    line = (char*)realloc(line, (lineLength + textLength + 1) * sizeof(char));
+    memmove(line + index + textLength, line + index, lineLength - index + 1);
+    memcpy(line + index, text, textLength);
+    lines[lineNumber] = line;
 }
 
-std::vector<std::pair<int, int>> searchText(const std::vector<std::vector<char>>& lines, const char* searchText) {
-    std::vector<std::pair<int, int>> positions;
+std::pair<int, int>* searchText(char** lines, int lineCount, const char* searchText, int& resultCount) {
+    resultCount = 0;
+    std::pair<int, int>* positions = nullptr;
     size_t searchLength = strlen(searchText);
 
-    for (size_t i = 0; i < lines.size(); ++i) {
-        const std::vector<char>& line = lines[i];
-        for (size_t j = 0; j <= line.size() - searchLength; ++j) {
-            if (strncmp(&line[j], searchText, searchLength) == 0) {
-                positions.emplace_back(i, j);
-            }
+    for (int i = 0; i < lineCount; ++i) {
+        const char* line = lines[i];
+        for (const char* pos = strstr(line, searchText); pos; pos = strstr(pos + 1, searchText)) {
+            positions = (std::pair<int, int>*)realloc(positions, (resultCount + 1) * sizeof(std::pair<int, int>));
+            positions[resultCount] = std::make_pair(i, (int)(pos - line));
+            ++resultCount;
         }
     }
 
     return positions;
+}
+
+void freeTextLines(char**& lines, int lineCount) {
+    for (int i = 0; i < lineCount; ++i) {
+        free(lines[i]);
+    }
+    free(lines);
+    lines = nullptr;
 }
