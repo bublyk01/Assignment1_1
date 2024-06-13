@@ -16,6 +16,7 @@ void deleteText(char**& lines, int& lineCount, int lineNumber, int index, int nu
 void cutText(char**& lines, int& lineCount, int lineNumber, int index, int numChars);
 void copyText(char** lines, int lineNumber, int index, int numChars);
 void pasteText(char**& lines, int& lineCount, int lineNumber, int index);
+void insertWithReplacement(char**& lines, int& lineCount, int lineNumber, int index, const char* text);
 
 char** text_lines = nullptr;
 int line_count = 0;
@@ -298,6 +299,20 @@ int main() {
             pasteText(text_lines, line_count, lineNumber - 1, index);
             addCommandToHistory("paste", clipboard, lineNumber - 1, index);
             }
+        else if (strcmp(command, "13") == 0) {
+            int lineNumber, index;
+            printf("Enter the line number and index to insert with replacement: ");
+            scanf_s("%d %d", &lineNumber, &index);
+            getchar();
+
+            printf("Enter text to insert: ");
+            char text[1024];
+            fgets(text, 1024, stdin);
+            text[strcspn(text, "\n")] = '\0';
+
+            insertWithReplacement(text_lines, line_count, lineNumber - 1, index, text);
+            addCommandToHistory("replace", text, lineNumber - 1, index);
+            }
         else {
             printf("Command was not found\n");
         }
@@ -464,4 +479,9 @@ void deleteText(char**& lines, int& lineCount, int lineNumber, int index, int nu
     }
 
     memmove(line + index, line + index + numChars, lineLength - index - numChars + 1);
+}
+void insertWithReplacement(char**& lines, int& lineCount, int lineNumber, int index, const char* text) {
+    int length = strlen(text);
+    deleteText(lines, lineCount, lineNumber, index, length);
+    insertTextAt(lines, lineCount, lineNumber, index, text);
 }
