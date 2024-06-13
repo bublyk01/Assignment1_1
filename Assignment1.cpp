@@ -28,6 +28,10 @@ struct Command {
 Command commandHistory[3];
 int commandIndex = 0;
 
+Command redoHistory[3];
+int redoIndex = 0;
+bool redoAvailable = false;
+
 size_t strlen(const char* str) {
     const char* s = str;
     while (*s) ++s;
@@ -112,6 +116,15 @@ void addCommandToHistory(const char* name, const char* text = "", int lineNumber
     commandIndex = (commandIndex + 1) % 3;
 }
 
+void addCommandToRedoHistory(const char* name, const char* text = "", int lineNumber = -1, int index = -1, int numChars = -1) {
+    strcpy(redoHistory[redoIndex].name, 10, name);
+    strcpy(redoHistory[redoIndex].text, 1024, text);
+    redoHistory[redoIndex].lineNumber = lineNumber;
+    redoHistory[redoIndex].index = index;
+    redoHistory[redoIndex].numChars = numChars;
+    redoIndex = (redoIndex + 1) % 3;
+}
+
 void undoLastCommand() {
     if (commandIndex == 0) {
         commandIndex = 2;
@@ -123,11 +136,39 @@ void undoLastCommand() {
 
     if (strcmp(lastCommand.name, "insert") == 0) {
         deleteText(text_lines, line_count, lastCommand.lineNumber, lastCommand.index, strlen(lastCommand.text));
+        addCommandToRedoHistory("insert", lastCommand.text, lastCommand.lineNumber, lastCommand.index);
     }
     else if (strcmp(lastCommand.name, "delete") == 0) {
         insertTextAt(text_lines, line_count, lastCommand.lineNumber, lastCommand.index, lastCommand.text);
+        addCommandToRedoHistory("delete", lastCommand.text, lastCommand.lineNumber, lastCommand.index, lastCommand.numChars);
     }
     strcpy(commandHistory[commandIndex].name, 10, "");
+    redoAvailable = true;
+}
+
+void redoLastCommand() {
+    if (!redoAvailable) {
+        printf("No commands to redo.\n");
+        return;
+    }
+
+    if (redoIndex == 0) {
+        redoIndex = 2;
+    }
+    else {
+        redoIndex--;
+    }
+    Command lastCommand = redoHistory[redoIndex];
+
+    if (strcmp(lastCommand.name, "insert") == 0) {
+        insertTextAt(text_lines, line_count, lastCommand.lineNumber, lastCommand.index, lastCommand.text);
+        addCommandToHistory("insert", lastCommand.text, lastCommand.lineNumber, lastCommand.index);
+    }
+    else if (strcmp(lastCommand.name, "delete") == 0) {
+        deleteText(text_lines, line_count, lastCommand.lineNumber, lastCommand.index, lastCommand.numChars);
+        addCommandToHistory("delete", lastCommand.text, lastCommand.lineNumber, lastCommand.index, lastCommand.numChars);
+    }
+    strcpy(redoHistory[redoIndex].name, 10, "");
 }
 
 int main() {
@@ -212,11 +253,15 @@ int main() {
             printf("Text has been deleted successfully\n");
         }
         else if (strcmp(command, "help") == 0) {
-            printf("1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search, 8 - undo\n");
+            printf("1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search, 8 - undo, 9 - redo\n");
         }
         else if (strcmp(command, "8") == 0) {
             undoLastCommand();
             printf("Last command undone\n");
+        }
+        else if (strcmp(command, "9") == 0) {
+            redoLastCommand();
+            printf("Last command redone\n");
         }
         else if (strcmp(command, "exit") == 0) {
             printf("Exiting the program...\n");
