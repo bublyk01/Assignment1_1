@@ -13,9 +13,13 @@ std::pair<int, int>* searchText(char** lines, int lineCount, const char* searchT
 void clearConsole();
 void freeTextLines(char**& lines, int lineCount);
 void deleteText(char**& lines, int& lineCount, int lineNumber, int index, int numChars);
+void cutText(char**& lines, int& lineCount, int lineNumber, int index, int numChars);
+void copyText(char** lines, int lineNumber, int index, int numChars);
+void pasteText(char**& lines, int& lineCount, int lineNumber, int index);
 
 char** text_lines = nullptr;
 int line_count = 0;
+char clipboard[1024] = { 0 };
 
 struct Command {
     char name[10];
@@ -267,6 +271,33 @@ int main() {
             printf("Exiting the program...\n");
             break;
         }
+        else if (strcmp(command, "10") == 0) {
+            int lineNumber, index, numChars;
+            printf("Enter the line number, index, and number of characters to cut: ");
+            scanf_s("%d %d %d", &lineNumber, &index, &numChars);
+            getchar();
+
+            cutText(text_lines, line_count, lineNumber - 1, index, numChars);
+            addCommandToHistory("cut", clipboard, lineNumber - 1, index, numChars);
+        }
+        else if (strcmp(command, "11") == 0) {
+            int lineNumber, index, numChars;
+            printf("Enter the line number, index, and number of characters to copy: ");
+            scanf_s("%d %d %d", &lineNumber, &index, &numChars);
+            getchar();
+
+            copyText(text_lines, lineNumber - 1, index, numChars);
+            printf("Copied text: %s\n", clipboard);
+        }
+        else if (strcmp(command, "12") == 0) {
+            int lineNumber, index;
+            printf("Enter the line number and index to paste: ");
+            scanf_s("%d %d", &lineNumber, &index);
+            getchar();
+
+            pasteText(text_lines, line_count, lineNumber - 1, index);
+            addCommandToHistory("paste", clipboard, lineNumber - 1, index);
+            }
         else {
             printf("Command was not found\n");
         }
@@ -278,6 +309,32 @@ int main() {
     freeTextLines(text_lines, line_count);
 
     return 0;
+}
+
+void cutText(char**& lines, int& lineCount, int lineNumber, int index, int numChars) {
+    if (lineNumber < 0 || lineNumber >= lineCount || index < 0 || index >= strlen(lines[lineNumber])) {
+        printf("Invalid line number or index.\n");
+        return;
+    }
+
+    strncpy_s(clipboard, lines[lineNumber] + index, numChars);
+    clipboard[numChars] = '\0';
+
+    deleteText(lines, lineCount, lineNumber, index, numChars);
+}
+
+void copyText(char** lines, int lineNumber, int index, int numChars) {
+    if (lineNumber < 0 || lineNumber >= line_count || index < 0 || index >= strlen(lines[lineNumber])) {
+        printf("Invalid line number or index.\n");
+        return;
+    }
+
+    strncpy_s(clipboard, lines[lineNumber] + index, numChars);
+    clipboard[numChars] = '\0';
+}
+
+void pasteText(char**& lines, int& lineCount, int lineNumber, int index) {
+    insertTextAt(lines, lineCount, lineNumber, index, clipboard);
 }
 
 void clearConsole() {
