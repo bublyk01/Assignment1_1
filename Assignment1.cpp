@@ -147,9 +147,18 @@ void undoLastCommand() {
         insertTextAt(text_lines, line_count, lastCommand.lineNumber, lastCommand.index, lastCommand.text);
         addCommandToRedoHistory("delete", lastCommand.text, lastCommand.lineNumber, lastCommand.index, lastCommand.numChars);
     }
+    else if (strcmp(lastCommand.name, "cut") == 0) {
+        insertTextAt(text_lines, line_count, lastCommand.lineNumber, lastCommand.index, clipboard);
+        addCommandToRedoHistory("cut", clipboard, lastCommand.lineNumber, lastCommand.index, lastCommand.numChars);
+    }
+    else if (strcmp(lastCommand.name, "paste") == 0) {
+        deleteText(text_lines, line_count, lastCommand.lineNumber, lastCommand.index, strlen(clipboard));
+        addCommandToRedoHistory("paste", clipboard, lastCommand.lineNumber, lastCommand.index);
+    }
     strcpy(commandHistory[commandIndex].name, 10, "");
     redoAvailable = true;
 }
+
 
 void redoLastCommand() {
     if (!redoAvailable) {
@@ -173,8 +182,17 @@ void redoLastCommand() {
         deleteText(text_lines, line_count, lastCommand.lineNumber, lastCommand.index, lastCommand.numChars);
         addCommandToHistory("delete", lastCommand.text, lastCommand.lineNumber, lastCommand.index, lastCommand.numChars);
     }
+    else if (strcmp(lastCommand.name, "cut") == 0) {
+        cutText(text_lines, line_count, lastCommand.lineNumber, lastCommand.index, lastCommand.numChars);
+        addCommandToHistory("cut", lastCommand.text, lastCommand.lineNumber, lastCommand.index, lastCommand.numChars);
+    }
+    else if (strcmp(lastCommand.name, "paste") == 0) {
+        pasteText(text_lines, line_count, lastCommand.lineNumber, lastCommand.index);
+        addCommandToHistory("paste", lastCommand.text, lastCommand.lineNumber, lastCommand.index);
+    }
     strcpy(redoHistory[redoIndex].name, 10, "");
 }
+
 
 int main() {
     char command[10];
@@ -258,7 +276,7 @@ int main() {
             printf("Text has been deleted successfully\n");
         }
         else if (strcmp(command, "help") == 0) {
-            printf("1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search, 8 - undo, 9 - redo\n");
+            printf("1 - text typewriter, 2 - new line, 3 - save the file, 4 - load the file, 5 - show what you wrote, 6 - insert text at position, 7 - search, 8 - undo, 9 - redo, 10 - cut, 11 - copy, 12 - paste, 13 - insert with replacement\n");
         }
         else if (strcmp(command, "8") == 0) {
             undoLastCommand();
