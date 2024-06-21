@@ -91,7 +91,7 @@ public:
         return 0;
     }
 
-    void insertTextAt(int lineNumber, int index, const char* text) {
+    void insertWithReplacement(int lineNumber, int index, const char* text) {
         if (lineNumber < 0 || lineNumber >= line_count) {
             fprintf(stderr, "Line number out of range\n");
             return;
@@ -106,8 +106,10 @@ public:
             return;
         }
 
-        line = (char*)realloc(line, (lineLength + textLength + 1) * sizeof(char));
-        memmove(line + index + textLength, line + index, lineLength - index + 1);
+        int numCharsToDelete = (index + textLength <= lineLength) ? textLength : lineLength - index;
+
+        line = (char*)realloc(line, (lineLength + textLength - numCharsToDelete + 1) * sizeof(char));
+        memmove(line + index + textLength, line + index + numCharsToDelete, lineLength - index - numCharsToDelete + 1);
         std::memcpy(line + index, text, textLength);
         text_lines[lineNumber] = line;
     }
@@ -162,12 +164,6 @@ public:
         memmove(line + index, line + index + numChars, lineLength - index - numChars + 1);
     }
 
-    void insertWithReplacement(int lineNumber, int index, const char* text) {
-        int length = strlen(text);
-        deleteText(lineNumber, index, length);
-        insertTextAt(lineNumber, index, text);
-    }
-
     void cutText(int lineNumber, int index, int numChars) {
         if (lineNumber < 0 || lineNumber >= line_count || index < 0 || index >= strlen(text_lines[lineNumber])) {
             printf("Invalid line number or index.\n");
@@ -191,7 +187,7 @@ public:
     }
 
     void pasteText(int lineNumber, int index) {
-        insertTextAt(lineNumber, index, clipboard);
+        insertWithReplacement(lineNumber, index, clipboard);
     }
 
     const char* getClipboard() const {
@@ -229,11 +225,11 @@ public:
             addCommandToRedoHistory("insert", lastCommand.text, lastCommand.lineNumber, lastCommand.index);
         }
         else if (strcmp(lastCommand.name, "delete") == 0) {
-            insertTextAt(lastCommand.lineNumber, lastCommand.index, lastCommand.text);
+            insertWithReplacement(lastCommand.lineNumber, lastCommand.index, lastCommand.text);
             addCommandToRedoHistory("delete", "", lastCommand.lineNumber, lastCommand.index, lastCommand.numChars);
         }
         else if (strcmp(lastCommand.name, "cut") == 0) {
-            insertTextAt(lastCommand.lineNumber, lastCommand.index, clipboard);
+            insertWithReplacement(lastCommand.lineNumber, lastCommand.index, clipboard);
             addCommandToRedoHistory("cut", "", lastCommand.lineNumber, lastCommand.index, lastCommand.numChars);
         }
         else if (strcmp(lastCommand.name, "paste") == 0) {
@@ -253,7 +249,7 @@ public:
         Command lastRedoCommand = redoHistory[(redoIndex + 2) % 3];
 
         if (strcmp(lastRedoCommand.name, "insert") == 0) {
-            insertTextAt(lastRedoCommand.lineNumber, lastRedoCommand.index, lastRedoCommand.text);
+            insertWithReplacement(lastRedoCommand.lineNumber, lastRedoCommand.index, lastRedoCommand.text);
         }
         else if (strcmp(lastRedoCommand.name, "delete") == 0) {
             deleteText(lastRedoCommand.lineNumber, lastRedoCommand.index, lastRedoCommand.numChars);
@@ -310,7 +306,7 @@ int main() {
             getchar();
             fgets(text, 1024, stdin);
             text[strcspn(text, "\n")] = '\0';
-            editor.insertTextAt(lineNumber, index, text);
+            editor.insertWithReplacement(lineNumber, index, text);
             editor.addCommandToHistory("insert", text, lineNumber, index);
             break;
         case 2:
