@@ -33,24 +33,6 @@ public:
         freeTextLines();
     }
 
-    int text_input() {
-        char text[1024];
-        printf("Enter text (type 'end' on a new line to finish):\n");
-        while (true) {
-            if (!fgets(text, 1024, stdin)) break;
-            text[strcspn(text, "\n")] = '\0';
-            if (strcmp(text, "end") == 0) {
-                break;
-            }
-
-            text_lines = (char**)realloc(text_lines, (line_count + 1) * sizeof(char*));
-            text_lines[line_count] = (char*)malloc((strlen(text) + 1) * sizeof(char));
-            strcpy_s(text_lines[line_count], strlen(text) + 1, text);
-            ++line_count;
-        }
-        return 0;
-    }
-
     int append_text() {
         char text[1024];
         printf("Enter text to append (type 'end' on a new line to finish):\n");
@@ -297,27 +279,25 @@ public:
         printf("6. Undo last command\n");
         printf("7. Redo last command\n");
         printf("8. View text\n");
-        printf("9. Append text\n");
+        printf("9. New line\n");
         printf("10. Exit\n");
     }
 
     void viewText() {
-        printf("\n--- Current Text ---\n");
+        printf("Current Text\n");
         for (int i = 0; i < line_count; ++i) {
             printf("%d: %s\n", i + 1, text_lines[i]);
         }
-        printf("--------------------\n");
     }
 };
 
 int main() {
     TextEditor editor;
-    editor.text_input();
 
     int choice;
     do {
         editor.displayMenu();
-        printf("Enter your choice: ");
+        printf("Enter the command you want to do: ");
         scanf_s("%d", &choice);
         getchar();
 
@@ -374,10 +354,9 @@ int main() {
             editor.append_text();
             break;
         case 10:
-            printf("Exiting...\n");
             break;
         default:
-            printf("Invalid choice. Please try again.\n");
+            printf("This command is not here\n");
             break;
         }
     } while (choice != 10);
